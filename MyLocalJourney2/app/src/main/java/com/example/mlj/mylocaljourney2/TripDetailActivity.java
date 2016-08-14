@@ -371,6 +371,9 @@ public class TripDetailActivity extends AppCompatActivity implements
         bundle.putString("view_count",  String.valueOf(mHotSpotInfoList.get(Index).getViewCount()));
         bundle.putString("picture_url", mHotSpotInfoList.get(Index).getPicture());
         bundle.putString("description", mHotSpotInfoList.get(Index).getDescription());
+        bundle.putString("latitude", mHotSpotInfoList.get(Index).getLocation().getLatitude() );
+        bundle.putString("longitude", mHotSpotInfoList.get(Index).getLocation().getLongitude() );
+
 
         //將Bundle物件傳給intent
         myIntent.putExtras(bundle);

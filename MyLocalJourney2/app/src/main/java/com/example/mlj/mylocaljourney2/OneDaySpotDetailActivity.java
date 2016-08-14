@@ -1,12 +1,15 @@
 package com.example.mlj.mylocaljourney2;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -30,6 +33,8 @@ public class OneDaySpotDetailActivity extends AppCompatActivity {
     private String mViewCount;
     private String mPlanCount;
     private String mDescription;
+    private String mLatitude;
+    private String mLongitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,10 +47,15 @@ public class OneDaySpotDetailActivity extends AppCompatActivity {
         mPlanCount = bundle.getString("plan_count");
         mViewCount = bundle.getString("view_count");
         mDescription = bundle.getString("description");
+        mLatitude = bundle.getString("latitude");
+        mLongitude = bundle.getString("longitude");
 
         Utils.l("Libo debug : spotName ", mSpotName);
         Utils.l("Libo debug : pictureURL ", mPictureURL);
         Utils.l("Libo debug : mDescription ", mDescription);
+
+        Utils.l("Libo debug : mLatitude ", mLatitude);
+        Utils.l("Libo debug : mLongitude ", mLongitude);
         /*
         // fail. system reboot
         Bundle bundle = getIntent().getExtras();
@@ -64,14 +74,25 @@ public class OneDaySpotDetailActivity extends AppCompatActivity {
         mListViewOneDaySpot = (ListView)findViewById(R.id.lvOneDaySpot);
 
         mListViewOneDaySpot.setAdapter(new OneDaySpotAdapter( this, (ArrayList<HotSpotInfo>) mHotSpotInfoList));
+        mListViewOneDaySpot.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
 
+
+                String buffer="geo:"+mLatitude+mLongitude;
+                Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                        Uri.parse(buffer));
+                startActivity(intent);
+            }
+        });
     }
 
     private ArrayList<HotSpotInfo> GetHotSpotList(){
         ArrayList<HotSpotInfo> HotSpotInfoList = new ArrayList<HotSpotInfo>();
         Location location = new Location();
         //HotSpotInfo(String name,String description,String picture, Location location, long viewCount, long planCount )
-        for(int i=0;i<3;i++)
+        for(int i=0;i<1;i++)
             HotSpotInfoList.add(new HotSpotInfo(mSpotName, mDescription, mPictureURL, location, Long.parseLong(mViewCount), Long.parseLong(mPlanCount) ));
 
         return HotSpotInfoList;
