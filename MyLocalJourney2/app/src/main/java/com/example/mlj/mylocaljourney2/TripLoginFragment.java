@@ -22,6 +22,7 @@ import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.facebook.AccessToken;
@@ -49,6 +50,9 @@ import org.json.JSONObject;
 public class TripLoginFragment extends Fragment {
     private static final String ARG_PAGEINDEX = "PageIndex";
     private final static String TAG = "TripLoginFragment";
+    private final String STRING_SUCCESS="SUCCESS";
+    private final String STRING_PASSWORD_NOT_MATCH="PASSWORD_NOT_MATCH";
+    private final String STRING_EMAIL_NOT_FOUND="EMAIL_NOT_FOUND";
     private int mPageIndex;
     private ImageView mImageView;
     private int count=0;
@@ -240,13 +244,27 @@ public class TripLoginFragment extends Fragment {
                     String password = it.getStringExtra("password");
                     Utils.l("Libo debug : email " + email);
                     Utils.l("Libo debug : password " + password);
-                    getUserIdByEmaiPassword(email, password);
-                    mUserInfo.setIsLoginStatus(1);
+                    String Status = getUserIdByEmaiPassword(email, password);
+                    if(STRING_SUCCESS.compareToIgnoreCase(Status)==0) {
+                        mUserInfo.setIsLoginStatus(1);
+                        setLogoutUI();
+                    }
+                    else if(STRING_EMAIL_NOT_FOUND.compareToIgnoreCase(Status)==0){
+                        showMessage("Email is not correct.");
+                    }
+                    else if(STRING_PASSWORD_NOT_MATCH.compareToIgnoreCase(Status)==0){
+                        showMessage("Password is not correct");
+                    }
+                    else{
+                        showMessage("Email/Password is not correct");
+                    }
 
-                    setLogoutUI();
                 }
                 break;
         }
+    }
+    private void showMessage(String message) {
+        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
     }
     private int setLogoutUI() {
         Utils.l("Libo debug ");
@@ -354,9 +372,10 @@ public class TripLoginFragment extends Fragment {
     }
 
     //getUserIdByEmaiPassword
-    private int getUserIdByEmaiPassword(String stEmail, String stPassword) {
+    private String getUserIdByEmaiPassword(String stEmail, String stPassword) {
         Utils.l("Libo debug enter: getUserIdByEmaiPassword() stEmail " + stEmail);
         Utils.l("Libo debug enter: getUserIdByEmaiPassword() stPassword " + stPassword);
+        String Status = "NULL";
 
         // get baseURL
         String URL = mServerInfo.getBaseURL();
@@ -369,30 +388,37 @@ public class TripLoginFragment extends Fragment {
             JSONObject json = GetUserIdTask.get();
             Log.d(TAG, "json : " + json);
             try {
-                String Status = json.getString("status");
+                Status = json.getString("status");
                 JSONObject userJsnObj = null;
 
                 Log.d(TAG, "status is " + Status);
-                userJsnObj = json.getJSONObject("user");//Get JSONArray
-                long userId = userJsnObj.getLong("id");
-                String userEmail = userJsnObj.getString("email");
-                String userGender = userJsnObj.getString("gender");
-                String userIsRegistered = userJsnObj.getString("isRegistered");
-                String loginType = userJsnObj.getString("loginType");
 
-                if( userId ==  40964328)
-                    userId = 4232;
+                if(STRING_SUCCESS.compareTo(Status)==0) {
+                    userJsnObj = json.getJSONObject("user");//Get JSONArray
+                    long userId = userJsnObj.getLong("id");
+                    String userEmail = userJsnObj.getString("email");
+                    String userGender = userJsnObj.getString("gender");
+                    String userIsRegistered = userJsnObj.getString("isRegistered");
+                    String loginType = userJsnObj.getString("loginType");
 
-                mUserId = userId;
+                    if (userId == 40964328)
+                        userId = 4232;
 
-                Log.d(TAG, "userId " + String.valueOf(userId) );
-                Log.d(TAG, "userEmail " + userEmail);
-                Log.d(TAG, "userGender " + userGender);
-                Log.d(TAG, "userIsRegistered " + userIsRegistered);
-                Log.d(TAG, "loginType " + loginType);
+                    mUserId = userId;
 
-                mUserInfo.setUserId(String.valueOf(mUserId));
-                mUserInfo.setLoginType(loginType);
+                    Log.d(TAG, "userId " + String.valueOf(userId));
+                    Log.d(TAG, "userEmail " + userEmail);
+                    Log.d(TAG, "userGender " + userGender);
+                    Log.d(TAG, "userIsRegistered " + userIsRegistered);
+                    Log.d(TAG, "loginType " + loginType);
+
+                    mUserInfo.setUserId(String.valueOf(mUserId));
+                    mUserInfo.setLoginType(loginType);
+                }
+                else{
+                    Log.d(TAG, "Error: status is not SUCCESS");
+                    return Status;
+                }
 
 
             } catch (JSONException e) {
@@ -405,7 +431,7 @@ public class TripLoginFragment extends Fragment {
         }
 
         Utils.l("Libo debug exit:  getUserIdByEmaiPassword()");
-        return 0;
+        return Status;
     }
 
     private class GetUserIdByEmailPasswordTask extends AsyncTask<String, Integer, JSONObject> {
