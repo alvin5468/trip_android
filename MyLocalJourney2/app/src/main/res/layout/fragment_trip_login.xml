@@ -1,0 +1,64 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fb="http://schemas.android.com/apk/res-auto"
+    xmlns:facebook="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/TripLoginFragment"
+    android:weightSum="1">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="316dp"
+        android:layout_weight="0.94">
+
+        <ImageView
+            android:id="@+id/profile_img"
+            android:layout_width="163dp"
+            android:layout_height="163dp"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/img_head" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="201dp">
+
+            <TextView
+                android:id="@+id/tvHiUser"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="嗨!"
+                android:gravity="center_horizontal"
+                android:padding="3dp"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/tvLoginOrDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="現在就註冊或登入"
+                android:gravity="center_horizontal"
+                android:padding="3dp"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="登入"
+        android:id="@+id/BtnLogin" />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="註冊"
+        android:id="@+id/BtnRegister" />
+
+
+</LinearLayout>
