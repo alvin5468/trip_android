@@ -2,6 +2,9 @@ package com.example.mlj.mylocaljourney2;
 
 import android.util.Log;
 
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  * Created by alvin on 2016/5/14.
  */
@@ -10,6 +13,19 @@ import android.util.Log;
  * method, file name, and line number
  */
 public class Utils {
+    public static Calendar dateToCalendar(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        return cal;
+    }
+
+    public static String dateToString(Date date) {
+        Calendar calendar = dateToCalendar(date);
+        return calendar.get(Calendar.YEAR)+"-"+(calendar.get(Calendar.MONTH)+1) +"-" + calendar.get(Calendar.DAY_OF_MONTH);
+    }
+
+
+
     /*
      * debug variable enables/disables all log messages to logcat
      * Useful to disable prior to app store submission

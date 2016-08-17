@@ -36,6 +36,7 @@ import java.io.File;
 import java.lang.reflect.Member;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -211,7 +212,7 @@ public class TripPlanFragment extends Fragment {
                 String hashUrl;
                 String id;
                 String picture;
-                String startDate;
+//                String startDate;
                 String title;
 
                 for(int index=0;index<tripPlanInfoJson.length();index++){
@@ -220,11 +221,12 @@ public class TripPlanFragment extends Fragment {
                     //hashUrl=oj.getString("hashUrl");
                     id=oj.getString("id");
                     picture=oj.getString("picture");
-                    startDate=oj.getString("startDate");
+                    Date startDate = new Date(oj.getString("startDate"));
+                    Date endDate = new Date(oj.getString("endDate"));
 
                    // String tmpPicture = picture.substring(28);
 
-                    TripPlanList.add(new TripPlanInfo(id, title, startDate, picture));
+                    TripPlanList.add(new TripPlanInfo(id, title, Utils.dateToString(startDate)+" ~ " +Utils.dateToString(endDate), picture));
 
                     Log.d(TAG, "title " + title);
                     Log.d(TAG, "picture " + picture);
@@ -288,6 +290,7 @@ public class TripPlanFragment extends Fragment {
             //Utils.l("Libo debug ");
             TripPlanInfo tripplaninfo = TripPlanList.get(position);
             ImageView ivImage = (ImageView) convertView.findViewById(R.id.ivImage);
+
 
             //  if string is not null or empty, show photo
             if(tripplaninfo.getImageURL() != null && !tripplaninfo.getImageURL().isEmpty()) {
