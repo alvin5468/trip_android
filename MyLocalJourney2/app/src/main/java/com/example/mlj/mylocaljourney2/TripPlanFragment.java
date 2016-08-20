@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -45,11 +47,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static com.example.mlj.mylocaljourney2.TripLoginFragment.*;
+import android.content.Context;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 
 public class TripPlanFragment extends Fragment {
     private static final String ARG_PAGEINDEX = "PageIndex";
     private final static String TAG = "TripPlanFragment";
+    private final String STRING_SUCCESS="SUCCESS";
     private int mPageIndex;
     private ImageView mImageView;
     private TextView mTextView;
@@ -59,6 +64,11 @@ public class TripPlanFragment extends Fragment {
     private String mUserId = null;
     private ServerInfo mServerInfo = null;
     private UserInfo mUserInfo = null;
+    private static final String db_name = "MyLocalJourneyDB"; // database name
+    private static final String DBTableName = "AllJourneyBeginByUserId"; // table name
+    private SQLiteDatabase SQliteDB; //database object
+    private ContentValues DatabaseCV;
+
 
     public static TripPlanFragment newInstance(int PageIndex) {
         TripPlanFragment f = new TripPlanFragment();
@@ -80,6 +90,47 @@ public class TripPlanFragment extends Fragment {
         mPageIndex = getArguments().getInt(ARG_PAGEINDEX);
     }
 
+    public int DBTripInfoInit(){
+        // open or create database
+        SQliteDB = getActivity().openOrCreateDatabase(db_name, android.content.Context.MODE_PRIVATE, null);
+        // create table
+        String sql_cmd = "CREATE TABLE IF NOT EXISTS " + DBTableName + "(userId VARCHAR(8), " + "JSON VARCHAR(2048))";
+        SQliteDB.execSQL(sql_cmd);
+        return 0;
+    }
+    public int DBTripInfoAddData(String stUserId, String stJSON){
+        //insert data
+        Utils.l("Libo debug stUserId : " + stUserId);
+        Utils.l("Libo debug stJSON : " + stJSON);
+
+        DatabaseCV = new ContentValues(1);
+        DatabaseCV.put("userId", stUserId);
+        DatabaseCV.put("JSON",stJSON);
+        SQliteDB.insert(DBTableName, null, DatabaseCV);
+
+        return 0;
+    }
+    public String DBTripInfoGetData(){
+        String JSON_Obj_str = null;
+        //get data
+        Cursor c = SQliteDB.rawQuery("SELECT * FROM " + DBTableName, null);
+        if(c.getCount()==0)
+        {
+            Utils.l("Libo debug : NO data in the SQLiteDB");
+        }
+        else
+        {
+            c.moveToFirst();
+            Utils.l("Libo debug : There are total " + c.getCount() + " data");
+            do {
+                Utils.l("Libo debug : userId : " + c.getString(0) );
+                Utils.l("Libo debug : JSON : " + c.getString(1) );
+                JSON_Obj_str = c.getString(1);
+            }while(c.moveToNext());
+        }
+        return JSON_Obj_str;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         //return inflater.inflate(R.layout.fragment_trip_plan, container, false);
@@ -96,7 +147,9 @@ public class TripPlanFragment extends Fragment {
         int is_user_id_valid = mUserInfo.getIsLoginStatus();
         Utils.l("Libo debug : is_user_id_valid " + is_user_id_valid);
 
-        //TripLoginFragment.GetUserId();
+
+        // database init
+        DBTripInfoInit();
 
         if( is_user_id_valid == -1 || is_user_id_valid == 0) {
             mTextView.setText("請先登入，才能看自已建的行程\n");
@@ -135,6 +188,8 @@ public class TripPlanFragment extends Fragment {
             });
         }
 
+
+        SQliteDB.close();
         return rootView;
     }
 
@@ -201,35 +256,48 @@ public class TripPlanFragment extends Fragment {
         TripPlanTask.execute(URL);
         try {
             JSONObject json = TripPlanTask.get();
-            Log.d(TAG, "json : " + json);
+            Log.d(TAG, "json : " + json.toString());
 
             try {
                 String Status = json.getString("status");
                 String userId = json.getString("userId");
 
-                JSONArray tripPlanInfoJson = json.getJSONArray("journeys");//Get JSONArray
-                String hashUrl;
-                String id;
-                String picture;
-                String startDate;
-                String title;
+                if(STRING_SUCCESS.compareToIgnoreCase(Status)==0)
+                {
+                    Utils.l("Libo debug : Status " + Status);
+                    DBTripInfoAddData(mUserInfo.getUserId(), json.toString());
 
-                for(int index=0;index<tripPlanInfoJson.length();index++){
-                    JSONObject oj = tripPlanInfoJson.getJSONObject(index);
-                    title=oj.getString("title");
-                    //hashUrl=oj.getString("hashUrl");
-                    id=oj.getString("id");
-                    picture=oj.getString("picture");
-                    startDate=oj.getString("startDate");
 
-                   // String tmpPicture = picture.substring(28);
+                    String jsonStr = DBTripInfoGetData();;
+                    JSONObject jsonObject = new JSONObject(jsonStr);
 
-                    TripPlanList.add(new TripPlanInfo(id, title, startDate, picture));
+                    JSONArray tripPlanInfoJson = jsonObject.getJSONArray("journeys");//Get JSONArray
+                    String hashUrl;
+                    String id;
+                    String picture;
+                    String startDate;
+                    String title;
 
-                    Log.d(TAG, "title " + title);
-                    Log.d(TAG, "picture " + picture);
-                    Log.d(TAG, "startDate " + startDate);
-                    Log.d(TAG, "id " + id);
+                    for(int index=0;index<tripPlanInfoJson.length();index++){
+                        JSONObject oj = tripPlanInfoJson.getJSONObject(index);
+                        title=oj.getString("title");
+                        //hashUrl=oj.getString("hashUrl");
+                        id=oj.getString("id");
+                        picture=oj.getString("picture");
+                        startDate=oj.getString("startDate");
+
+                       // String tmpPicture = picture.substring(28);
+
+                        TripPlanList.add(new TripPlanInfo(id, title, startDate, picture));
+
+                        Log.d(TAG, "title " + title);
+                        Log.d(TAG, "picture " + picture);
+                        Log.d(TAG, "startDate " + startDate);
+                        Log.d(TAG, "id " + id);
+                    }
+                }
+                else{
+                    Utils.l("Libo debug : Status " + Status);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
