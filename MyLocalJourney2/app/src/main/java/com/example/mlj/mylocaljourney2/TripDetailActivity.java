@@ -350,15 +350,19 @@ public class TripDetailActivity extends AppCompatActivity implements
         @Override
         public boolean onMarkerClick(Marker marker) {
 
-            final double lat = marker.getPosition().latitude;
-            final double lng = marker.getPosition().longitude;
-            final String title = marker.getTitle();
 
-            Uri gmmIntentUri = Uri.parse("geo:"+lat+","+lng+"?q=" + Uri.encode(title));
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
 
-            mapIntent.setPackage("com.google.android.apps.maps");
-            startActivity(mapIntent);
+                final double lat = marker.getPosition().latitude;
+                final double lng = marker.getPosition().longitude;
+                final String title = marker.getTitle();
+
+                Uri gmmIntentUri = Uri.parse("geo:"+lat+","+lng+"?q=" + Uri.encode(title));
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+
+                mapIntent.setPackage("com.google.android.apps.maps");
+                startActivity(mapIntent);
+
+
 
             //showToast(marker.getTitle());
             return false;
