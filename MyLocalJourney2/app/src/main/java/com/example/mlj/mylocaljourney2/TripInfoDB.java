@@ -16,15 +16,17 @@ public class TripInfoDB {
         this.activity = activity;
     }
     private static final String db_name = "MyLocalJourneyDB"; // database name
-    private static final String DBTableName = "AllJourneyBeginByUserId"; // table name
+    private static final String DBTableNameJourneyBegin = "AllJourneyBeginByUserId"; // table name
+    private static final String DBTableNameJDetailourney = "DetailJourneyByJourneyBeginId"; // table name
+    //private static final String DBTableName = "AllJourneyBeginByUserId"; // table name
     private SQLiteDatabase SQliteDB; //database object
     private ContentValues DatabaseCV;
 
-    public int Init(){
+    public int InitJourneyBegin(){
         // open or create database
         SQliteDB = activity.openOrCreateDatabase(db_name, android.content.Context.MODE_PRIVATE, null);
         // create table
-        String sql_cmd = "CREATE TABLE IF NOT EXISTS " + DBTableName + "(userId VARCHAR(8), " + "JSON VARCHAR(2048))";
+        String sql_cmd = "CREATE TABLE IF NOT EXISTS " + DBTableNameJourneyBegin + "(userId VARCHAR(8), " + "JSON VARCHAR(2048))";
         SQliteDB.execSQL(sql_cmd);
         return 0;
     }
@@ -36,7 +38,7 @@ public class TripInfoDB {
         DatabaseCV = new ContentValues(1);
         DatabaseCV.put("userId", stUserId);
         DatabaseCV.put("JSON",stJSON);
-        SQliteDB.insert(DBTableName, null, DatabaseCV);
+        SQliteDB.insert(DBTableNameJourneyBegin, null, DatabaseCV);
 
         return 0;
     }
@@ -47,25 +49,25 @@ public class TripInfoDB {
 
         DatabaseCV = new ContentValues(1);
         DatabaseCV.put("JSON",stJSON);
-        SQliteDB.update(DBTableName, DatabaseCV, "userId=" + stUserId, null);
+        SQliteDB.update(DBTableNameJourneyBegin, DatabaseCV, "userId=" + stUserId, null);
 
         return 0;
     }
     public int DeleteAllJourneyBegid(){
-        String sql_cmd = "delete from " + DBTableName ;
+        String sql_cmd = "delete from " + DBTableNameJourneyBegin ;
         SQliteDB.execSQL(sql_cmd);
         return 0;
     }
     public int GetJourneyBeginCount(){
         int JourneyBeginCount = 0;
-        Cursor c = SQliteDB.rawQuery("SELECT * FROM " + DBTableName, null);
+        Cursor c = SQliteDB.rawQuery("SELECT * FROM " + DBTableNameJourneyBegin, null);
         JourneyBeginCount = c.getCount();
         return JourneyBeginCount;
     }
     public String GetJourneyBeginData(){
         String JSON_Obj_str = null;
         //get data
-        Cursor c = SQliteDB.rawQuery("SELECT * FROM " + DBTableName, null);
+        Cursor c = SQliteDB.rawQuery("SELECT * FROM " + DBTableNameJourneyBegin, null);
         if(c.getCount()==0)
         {
             Utils.l("Libo debug : NO data in the SQLiteDB");
@@ -83,4 +85,12 @@ public class TripInfoDB {
         return JSON_Obj_str;
     }
 
+    public int InitDetailJourney(){
+        // open or create database
+        SQliteDB = activity.openOrCreateDatabase(db_name, android.content.Context.MODE_PRIVATE, null);
+        // create table
+        String sql_cmd = "CREATE TABLE IF NOT EXISTS " + DBTableNameJDetailourney + "(JourneyBeginId VARCHAR(8), " + "JSON VARCHAR(2048))";
+        SQliteDB.execSQL(sql_cmd);
+        return 0;
+    }
 }

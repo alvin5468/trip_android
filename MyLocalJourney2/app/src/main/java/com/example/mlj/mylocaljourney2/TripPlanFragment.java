@@ -94,7 +94,7 @@ public class TripPlanFragment extends Fragment {
         mTextView = (TextView) rootView.findViewById(R.id.textView1);
 
         mTripInfoDB = new TripInfoDB(getActivity());
-        mTripInfoDB.Init();
+        mTripInfoDB.InitJourneyBegin();
 
 
         mUserInfo = new UserInfo(getActivity());
