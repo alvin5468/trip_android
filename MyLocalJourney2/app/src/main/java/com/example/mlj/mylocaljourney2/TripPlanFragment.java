@@ -341,15 +341,22 @@ public class TripPlanFragment extends Fragment {
             TripPlanInfo tripplaninfo = TripPlanList.get(position);
             ImageView ivImage = (ImageView) convertView.findViewById(R.id.ivImage);
 
+            if(mIsConnected==true){
+                //  if string is not null or empty, show photo
+                if(tripplaninfo.getImageURL() != null && !tripplaninfo.getImageURL().isEmpty()) {
+                    Picasso.with(getContext()).load(tripplaninfo.getImageURL()).fit().into(ivImage);
+                }
+                else
+                {
+                    Utils.l("Libo debug: string is null ");
+                }
+            }
+            else{
+                Utils.l("Libo debug: network is not ready, load default photo ");
+                Picasso.with(getContext()).load(R.drawable.berlin_dom).fit().into(ivImage);
+            }
 
-            //  if string is not null or empty, show photo
-            if(tripplaninfo.getImageURL() != null && !tripplaninfo.getImageURL().isEmpty()) {
-                Picasso.with(getContext()).load(tripplaninfo.getImageURL()).fit().into(ivImage);
-            }
-            else
-            {
-                Utils.l("Libo debug: string is null ");
-            }
+
 
 
             TextView tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);

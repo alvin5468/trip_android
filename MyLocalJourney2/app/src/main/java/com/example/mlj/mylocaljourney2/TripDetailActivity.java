@@ -1,6 +1,9 @@
 package com.example.mlj.mylocaljourney2;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
@@ -52,6 +55,7 @@ public class TripDetailActivity extends AppCompatActivity implements
     private List<Marker> mMarkerList = new ArrayList<Marker>();
     private ServerInfo mServerInfo = null;
     private String mJourneyBeginId = null;
+    private boolean mIsConnected = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +71,9 @@ public class TripDetailActivity extends AppCompatActivity implements
         mJourneyBeginId = uniqueID;
 
         mServerInfo = new ServerInfo();
+
+        mIsConnected = isConnected();
+
         // init Map
         //initMap();
     }
@@ -116,10 +123,21 @@ public class TripDetailActivity extends AppCompatActivity implements
         }
 
     }
-
+    public boolean isConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            return true;
+        }
+        return false;
+    }
     protected void onResume(){
         super.onResume();
-        initMap();
+
+        if( mIsConnected == true){
+            initMap();
+        }
+
     }
 
     public void updateInfoWindow(int index) // OneTripPlanInfoFragment will call this callback
