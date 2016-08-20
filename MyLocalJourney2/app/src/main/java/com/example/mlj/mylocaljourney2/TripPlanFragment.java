@@ -51,6 +51,7 @@ import static com.example.mlj.mylocaljourney2.TripLoginFragment.*;
 public class TripPlanFragment extends Fragment {
     private static final String ARG_PAGEINDEX = "PageIndex";
     private final static String TAG = "TripPlanFragment";
+    private final String STRING_SUCCESS="SUCCESS";
     private int mPageIndex;
     private ImageView mImageView;
     private TextView mTextView;
@@ -60,6 +61,7 @@ public class TripPlanFragment extends Fragment {
     private String mUserId = null;
     private ServerInfo mServerInfo = null;
     private UserInfo mUserInfo = null;
+    private TripInfoDB mTripInfoDB = null;
 
     public static TripPlanFragment newInstance(int PageIndex) {
         TripPlanFragment f = new TripPlanFragment();
@@ -88,9 +90,11 @@ public class TripPlanFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_trip_plan, container, false);
         mTextView = (TextView) rootView.findViewById(R.id.textView1);
 
+        mTripInfoDB = new TripInfoDB(getActivity());
+        mTripInfoDB.Init();
+
 
         mUserInfo = new UserInfo(getActivity());
-
         mUserId = mUserInfo.getUserId();
         Utils.l("Libo debug : mUserId " + mUserId);
 
@@ -202,36 +206,64 @@ public class TripPlanFragment extends Fragment {
         TripPlanTask.execute(URL);
         try {
             JSONObject json = TripPlanTask.get();
-            Log.d(TAG, "json : " + json);
+            Utils.l("Libo debug : json " + json);
 
             try {
                 String Status = json.getString("status");
                 String userId = json.getString("userId");
 
-                JSONArray tripPlanInfoJson = json.getJSONArray("journeys");//Get JSONArray
-                String hashUrl;
-                String id;
-                String picture;
-//                String startDate;
-                String title;
+                if(STRING_SUCCESS.compareToIgnoreCase(Status)==0) {
+                    Utils.l("Libo debug : Status " + Status);
+                    Utils.l("Libo debug : GetJourneyBeginCount() " + mTripInfoDB.GetJourneyBeginCount());
+                    if( mTripInfoDB.GetJourneyBeginCount() == 0)
+                    {
+                        Utils.l("Libo debug : AddJourneyBeginData ");
+                        //add data
+                        mTripInfoDB.AddJourneyBeginData(mUserInfo.getUserId(), json.toString());
+                    }
+                    else if( mTripInfoDB.GetJourneyBeginCount() >= 2){
+                        Utils.l("Libo debug : DeleteAllJourneyBegid ");
+                        // test delete database // if data count is larger than 2, delete all data
+                        mTripInfoDB.DeleteAllJourneyBegid();
+                    }
+                    else{
+                        Utils.l("Libo debug : UpdateJourneyBeginData ");
+                        //update data, not verify
+                        mTripInfoDB.UpdateJourneyBeginData(mUserInfo.getUserId(), json.toString());
+                    }
 
-                for(int index=0;index<tripPlanInfoJson.length();index++){
-                    JSONObject oj = tripPlanInfoJson.getJSONObject(index);
-                    title=oj.getString("title");
-                    //hashUrl=oj.getString("hashUrl");
-                    id=oj.getString("id");
-                    picture=oj.getString("picture");
-                    Date startDate = new Date(oj.getString("startDate"));
-                    Date endDate = new Date(oj.getString("endDate"));
+                    String jsonStr = mTripInfoDB.GetJourneyBeginData();
+                    Utils.l("Libo debug : jsonStr " + jsonStr);
 
-                   // String tmpPicture = picture.substring(28);
+                    JSONObject jsonObject = new JSONObject(jsonStr);
+                    // ori
+                    JSONArray tripPlanInfoJson = json.getJSONArray("journeys");//Get JSONArray
+                    //JSONArray tripPlanInfoJson = jsonObject.getJSONArray("journeys");//Get JSONArray
 
-                    TripPlanList.add(new TripPlanInfo(id, title, Utils.dateToString(startDate)+" ~ " +Utils.dateToString(endDate), picture));
+                    String hashUrl;
+                    String id;
+                    String picture;
+                    //String startDate;
+                    String title;
 
-                    Log.d(TAG, "title " + title);
-                    Log.d(TAG, "picture " + picture);
-                    Log.d(TAG, "startDate " + startDate);
-                    Log.d(TAG, "id " + id);
+                    for (int index = 0; index < tripPlanInfoJson.length(); index++) {
+                        JSONObject oj = tripPlanInfoJson.getJSONObject(index);
+                        title = oj.getString("title");
+                        //hashUrl=oj.getString("hashUrl");
+                        id = oj.getString("id");
+                        picture = oj.getString("picture");
+                        Date startDate = new Date(oj.getString("startDate"));
+                        Date endDate = new Date(oj.getString("endDate"));
+
+                        // String tmpPicture = picture.substring(28);
+
+                        TripPlanList.add(new TripPlanInfo(id, title, Utils.dateToString(startDate) + " ~ " + Utils.dateToString(endDate), picture));
+
+                        Log.d(TAG, "title " + title);
+                        Log.d(TAG, "picture " + picture);
+                        Log.d(TAG, "startDate " + startDate);
+                        Log.d(TAG, "id " + id);
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
