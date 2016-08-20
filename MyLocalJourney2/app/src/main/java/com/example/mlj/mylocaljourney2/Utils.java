@@ -1,5 +1,8 @@
 package com.example.mlj.mylocaljourney2;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import java.util.Calendar;
@@ -23,8 +26,6 @@ public class Utils {
         Calendar calendar = dateToCalendar(date);
         return calendar.get(Calendar.YEAR)+"-"+(calendar.get(Calendar.MONTH)+1) +"-" + calendar.get(Calendar.DAY_OF_MONTH);
     }
-
-
 
     /*
      * debug variable enables/disables all log messages to logcat

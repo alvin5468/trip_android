@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -62,6 +64,7 @@ public class TripPlanFragment extends Fragment {
     private ServerInfo mServerInfo = null;
     private UserInfo mUserInfo = null;
     private TripInfoDB mTripInfoDB = null;
+    private boolean mIsConnected = false;
 
     public static TripPlanFragment newInstance(int PageIndex) {
         TripPlanFragment f = new TripPlanFragment();
@@ -122,7 +125,11 @@ public class TripPlanFragment extends Fragment {
 
             //  get ListView from layout
             mListViewTripPlan = (ListView) rootView.findViewById(R.id.lvTripPlan);
-            mTripPlanList = GetTripPlanList(); // get trip list from web server (firebase).
+            try {
+                mTripPlanList = GetTripPlanList(); // get trip list from web server (firebase).
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             mListViewTripPlan.setAdapter(new TripPlanAdapter(getActivity(), (ArrayList<TripPlanInfo>) mTripPlanList));
             mListViewTripPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -142,7 +149,14 @@ public class TripPlanFragment extends Fragment {
 
         return rootView;
     }
-
+    public boolean isConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            return true;
+        }
+        return false;
+    }
     private void gotoTripDetailActivity(String uniqueID,String title)
     {
         //new一個intent物件，並指定Activity切換的class
@@ -188,57 +202,32 @@ public class TripPlanFragment extends Fragment {
         }
     }
 
-
-    private ArrayList<TripPlanInfo> GetTripPlanList(){
-        String URL = mServerInfo.getBaseURL()+"/journey_begin/user/"+ mUserInfo.getUserId(); // "http://52.197.58.253//journey_begin/user/4232";
+    private ArrayList<TripPlanInfo> ParseJSONAddTripPlanInfo(JSONObject json, boolean isNetworkReady){
         ArrayList<TripPlanInfo> TripPlanList = new ArrayList<TripPlanInfo>();
-
-        /*
-        //Add data by using hard code
-        TripPlanList.add( new TripPlanInfo("India", "2015/12/5~2015/12/20", "https://www.liverpool.ac.uk/media/research/india-fellowship-brochure-image.jpg"));
-        TripPlanList.add( new TripPlanInfo("German", "2015/11/15~2015/12/01", "http://www.eztravel.com.tw/img/pm/FRT/FRT0000003084D03.gif"));
-        TripPlanList.add( new TripPlanInfo("美國--美西十日遊", "2015/09/01~2015/09/10", "http://www.artisan.com.tw/images/blogs/%E8%8E%8A%E7%AB%8B%E8%82%B2_%E7%BE%8E%E5%9C%8B%E5%A4%A7%E5%B3%BD%E8%B0%B703.jpg"));
-        TripPlanList.add( new TripPlanInfo("中國--內蒙古十日遊", "2015/08/12~2015/08/20", "http://www.znhzzxwneimenggu.com/eWebEditor/uploadfile/20150804/20150804105805841.jpg"));
-        */
-
-        // get JSON from web server, add data
-        DownloadTripPlanTask TripPlanTask = new DownloadTripPlanTask();
-        TripPlanTask.execute(URL);
-        try {
-            JSONObject json = TripPlanTask.get();
-            Utils.l("Libo debug : json " + json);
 
             try {
                 String Status = json.getString("status");
                 String userId = json.getString("userId");
 
-                if(STRING_SUCCESS.compareToIgnoreCase(Status)==0) {
+                if (STRING_SUCCESS.compareToIgnoreCase(Status) == 0) {
                     Utils.l("Libo debug : Status " + Status);
-                    Utils.l("Libo debug : GetJourneyBeginCount() " + mTripInfoDB.GetJourneyBeginCount());
-                    if( mTripInfoDB.GetJourneyBeginCount() == 0)
-                    {
-                        Utils.l("Libo debug : AddJourneyBeginData ");
-                        //add data
-                        mTripInfoDB.AddJourneyBeginData(mUserInfo.getUserId(), json.toString());
-                    }
-                    else if( mTripInfoDB.GetJourneyBeginCount() >= 2){
-                        Utils.l("Libo debug : DeleteAllJourneyBegid ");
-                        // test delete database // if data count is larger than 2, delete all data
-                        mTripInfoDB.DeleteAllJourneyBegid();
-                    }
-                    else{
-                        Utils.l("Libo debug : UpdateJourneyBeginData ");
-                        //update data, not verify
-                        mTripInfoDB.UpdateJourneyBeginData(mUserInfo.getUserId(), json.toString());
+                    if(isNetworkReady == true) {  // if network is ready, allow add and update database
+                        if (mTripInfoDB.GetJourneyBeginCount() == 0) {
+                            Utils.l("Libo debug : AddJourneyBeginData ");
+                            //add data
+                            mTripInfoDB.AddJourneyBeginData(mUserInfo.getUserId(), json.toString());
+                        } else if (mTripInfoDB.GetJourneyBeginCount() >= 2) {
+                            Utils.l("Libo debug : DeleteAllJourneyBegid ");
+                            // test delete database // if data count is larger than 2, delete all data
+                            mTripInfoDB.DeleteAllJourneyBegid();
+                        } else {
+                            Utils.l("Libo debug : UpdateJourneyBeginData ");
+                            //update data, not verify
+                            mTripInfoDB.UpdateJourneyBeginData(mUserInfo.getUserId(), json.toString());
+                        }
                     }
 
-                    String jsonStr = mTripInfoDB.GetJourneyBeginData();
-                    Utils.l("Libo debug : jsonStr " + jsonStr);
-
-                    JSONObject jsonObject = new JSONObject(jsonStr);
-                    // ori
                     JSONArray tripPlanInfoJson = json.getJSONArray("journeys");//Get JSONArray
-                    //JSONArray tripPlanInfoJson = jsonObject.getJSONArray("journeys");//Get JSONArray
 
                     String hashUrl;
                     String id;
@@ -254,9 +243,6 @@ public class TripPlanFragment extends Fragment {
                         picture = oj.getString("picture");
                         Date startDate = new Date(oj.getString("startDate"));
                         Date endDate = new Date(oj.getString("endDate"));
-
-                        // String tmpPicture = picture.substring(28);
-
                         TripPlanList.add(new TripPlanInfo(id, title, Utils.dateToString(startDate) + " ~ " + Utils.dateToString(endDate), picture));
 
                         Log.d(TAG, "title " + title);
@@ -268,10 +254,42 @@ public class TripPlanFragment extends Fragment {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+
+        return TripPlanList;
+    }
+
+    private ArrayList<TripPlanInfo> GetTripPlanList() throws JSONException {
+        String URL = mServerInfo.getBaseURL()+"/journey_begin/user/"+ mUserInfo.getUserId(); // "http://52.197.58.253//journey_begin/user/4232";
+        ArrayList<TripPlanInfo> TripPlanList = new ArrayList<TripPlanInfo>();
+        mIsConnected = isConnected();
+        if( mIsConnected == true) // network is ready
+        {
+            Utils.l("Libo debug : network is ready ");
+            // get JSON from web server, add data
+            DownloadTripPlanTask TripPlanTask = new DownloadTripPlanTask();
+            TripPlanTask.execute(URL);
+            try {
+                JSONObject json = TripPlanTask.get();
+                Utils.l("Libo debug : json " + json);
+                TripPlanList = ParseJSONAddTripPlanInfo( json, mIsConnected);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        else{
+            Utils.l("Libo debug : GetJourneyBeginCount() " + mTripInfoDB.GetJourneyBeginCount());
+            Utils.l("Libo debug : network is not ready ");
+            if (mTripInfoDB.GetJourneyBeginCount() > 0)
+            {
+                String jsonStr = mTripInfoDB.GetJourneyBeginData();
+                Utils.l("Libo debug : jsonStr " + jsonStr);
+                JSONObject jsonObject = null;
+                jsonObject = new JSONObject(jsonStr);
+
+                TripPlanList = ParseJSONAddTripPlanInfo( jsonObject, mIsConnected);
+            }
         }
         return TripPlanList;
     }
