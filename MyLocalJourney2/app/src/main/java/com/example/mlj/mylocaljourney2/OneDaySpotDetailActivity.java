@@ -20,6 +20,7 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +50,10 @@ public class OneDaySpotDetailActivity extends AppCompatActivity {
         mDescription = bundle.getString("description");
         mLatitude = bundle.getString("latitude");
         mLongitude = bundle.getString("longitude");
+        String startTime = bundle.getString("startTime");
+        String remark = bundle.getString("remark");
+        int budget = bundle.getInt("budget");
+        String pathRemark = bundle.getString("pathRemark");
 
         Utils.l("Libo debug : spotName ", mSpotName);
         Utils.l("Libo debug : pictureURL ", mPictureURL);
@@ -56,47 +61,56 @@ public class OneDaySpotDetailActivity extends AppCompatActivity {
 
         Utils.l("Libo debug : mLatitude ", mLatitude);
         Utils.l("Libo debug : mLongitude ", mLongitude);
-        /*
-        // fail. system reboot
-        Bundle bundle = getIntent().getExtras();
-        Object hotSpotInfo = bundle.getSerializable("hotSpotInfo");
 
-        // work well
-        //Object score = bundle.getSerializable("score");
-        //Utils.l("Libo debug ", score.toString());
-        */
+        TextView name = (TextView)findViewById(R.id.name);
+        name.setText(mSpotName);
+
+        TextView time = (TextView)findViewById(R.id.time);
+        time.setText(startTime);
+
+        TextView budgetTextView = (TextView)findViewById(R.id.budget);
+        budgetTextView.setText("" + budget);
+
+        TextView path = (TextView)findViewById(R.id.path);
+        path.setText(pathRemark);
+
+        TextView remarkTextView = (TextView)findViewById(R.id.remark);
+        remarkTextView.setText(remark);
+
+
+
     }
     protected void onStart() {
         super.onStart();
 
-        mHotSpotInfoList =  GetHotSpotList();
-        //  get ListView from layout
-        mListViewOneDaySpot = (ListView)findViewById(R.id.lvOneDaySpot);
-
-        mListViewOneDaySpot.setAdapter(new OneDaySpotAdapter( this, (ArrayList<HotSpotInfo>) mHotSpotInfoList));
-        mListViewOneDaySpot.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-
-                String buffer="geo:"+mLatitude+mLongitude;
-                Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
-                        Uri.parse(buffer));
-                startActivity(intent);
-            }
-        });
+//        mHotSpotInfoList =  GetHotSpotList();
+//        //  get ListView from layout
+//        mListViewOneDaySpot = (ListView)findViewById(R.id.lvOneDaySpot);
+//
+//        mListViewOneDaySpot.setAdapter(new OneDaySpotAdapter( this, (ArrayList<HotSpotInfo>) mHotSpotInfoList));
+//        mListViewOneDaySpot.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view,
+//                                    int position, long id) {
+//
+//
+//                String buffer="geo:"+mLatitude+mLongitude;
+//                Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+//                        Uri.parse(buffer));
+//                startActivity(intent);
+//            }
+//        });
     }
 
-    private ArrayList<HotSpotInfo> GetHotSpotList(){
-        ArrayList<HotSpotInfo> HotSpotInfoList = new ArrayList<HotSpotInfo>();
-        Location location = new Location();
-        //HotSpotInfo(String name,String description,String picture, Location location, long viewCount, long planCount )
-        for(int i=0;i<1;i++)
-            HotSpotInfoList.add(new HotSpotInfo(mSpotName, mDescription, mPictureURL, location, Long.parseLong(mViewCount), Long.parseLong(mPlanCount) ));
-
-        return HotSpotInfoList;
-    }
+//    private ArrayList<HotSpotInfo> GetHotSpotList(){
+//        ArrayList<HotSpotInfo> HotSpotInfoList = new ArrayList<HotSpotInfo>();
+//        Location location = new Location();
+//        //HotSpotInfo(String name,String description,String picture, Location location, long viewCount, long planCount )
+//        for(int i=0;i<1;i++)
+//            HotSpotInfoList.add(new HotSpotInfo(mSpotName, mDescription, mPictureURL, location, Long.parseLong(mViewCount), Long.parseLong(mPlanCount) ));
+//
+//        return HotSpotInfoList;
+//    }
 
     public class OneDaySpotAdapter extends BaseAdapter {
         private LayoutInflater layoutInflater;

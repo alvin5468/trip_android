@@ -1,5 +1,7 @@
 package com.example.mlj.mylocaljourney2;
 import java.io.Serializable;
+import java.util.Date;
+
 /**
  * Created by alvin on 2016/4/19.
  */
@@ -13,12 +15,17 @@ public class HotSpotInfo implements Serializable  {
     private String picture;
     private long viewCount;
     private long planCount;
+    private String remark;
+    private int budget;
+    private String pathRemark;
+    private Date date;
+    private String startTime;
 
     public HotSpotInfo() {
         super();
     }
 
-    public HotSpotInfo(String name,String description,String picture, Location location, long viewCount, long planCount ) {
+    public HotSpotInfo(String name,String description,String picture, Location location, long viewCount, long planCount, String remark, int budget, String pathRemark, Date date, String startTime ) {
         super();
         this.name = name;
         this.description = description;
@@ -26,6 +33,11 @@ public class HotSpotInfo implements Serializable  {
         this.location = location;
         this.planCount = planCount;
         this.viewCount = viewCount;
+        this.remark = remark;
+        this.budget = budget;
+        this.pathRemark = pathRemark;
+        this.date = date;
+        this.startTime = startTime;
     }
     public String getSpotId() {
         return spotId;
@@ -82,6 +94,26 @@ public class HotSpotInfo implements Serializable  {
     }
     public void setPlanCount(long planCount) {
         this.planCount = planCount;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public int getBudget() {
+        return budget;
+    }
+
+    public String getPathRemark() {
+        return pathRemark;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public String getStartTime() {
+        return startTime;
     }
 }
 

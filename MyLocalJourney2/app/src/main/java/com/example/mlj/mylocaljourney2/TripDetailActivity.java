@@ -1,6 +1,7 @@
 package com.example.mlj.mylocaljourney2;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 
@@ -34,6 +35,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -76,12 +79,25 @@ public class TripDetailActivity extends AppCompatActivity implements
         mHotSpotInfoList = GetTripDetailListNew();
 
         Log.d(TAG, "mHotSpotInfoList.size() " + mHotSpotInfoList.size());
+        String lastDateString = null;
+
+        String emptyPrefix = "       ";
         for(int index=0;index<mHotSpotInfoList.size();index++) {
             hotSpotInfo = mHotSpotInfoList.get(index);
-            SpotList.add(hotSpotInfo.getName());
+
+            String dateString = Utils.dateToString(hotSpotInfo.getDate());
+
+            if (lastDateString == null || !lastDateString.equals(dateString)) {
+                SpotList.add(dateString + '\n' + emptyPrefix + hotSpotInfo.getStartTime() + " " + hotSpotInfo.getName());
+            } else {
+                SpotList.add(emptyPrefix + hotSpotInfo.getStartTime() + " " +hotSpotInfo.getName());
+
+            }
+            lastDateString = dateString;
+
             Log.d(TAG, hotSpotInfo.getName() + "< " + hotSpotInfo.getLocation().getLatitude() + " , " + hotSpotInfo.getLocation().getLongitude() + " > ");
         }
-        // init Point
+        // init Point`
         initPoints();
 
         FragmentManager manager = getSupportFragmentManager();
@@ -193,6 +209,9 @@ public class TripDetailActivity extends AppCompatActivity implements
                     journeySpotsId = c.getInt("id");
                     remark = c.getString("remark");
                     startTime = c.getString("startTime");
+                    String name = c.getString("title");
+                    Date date = new Date(c.getString("date"));
+                    String pathRemark = c.getString("pathRemark");
 
                     Log.d(TAG, "bugdet " + String.valueOf(budget) );
                     Log.d(TAG, "journeySpotsId " + String.valueOf(journeySpotsId) );
@@ -202,7 +221,7 @@ public class TripDetailActivity extends AppCompatActivity implements
                     JSONObject spotJsnObj = c.getJSONObject("spot");
                     String description;
                     String info;
-                    String name;
+
                     String spotPictureURL;
                     String placeId;
                     long spotID = 0;
@@ -210,7 +229,7 @@ public class TripDetailActivity extends AppCompatActivity implements
                     long viewCount = 0;
                     description = spotJsnObj.getString("description");
                     info = spotJsnObj.getString("info");
-                    name = spotJsnObj.getString("name");
+//                    name = spotJsnObj.getString("name");
                     spotPictureURL = spotJsnObj.getString("picture");
                     placeId = spotJsnObj.getString("placeId");
                     spotID = spotJsnObj.getLong("id");
@@ -228,7 +247,7 @@ public class TripDetailActivity extends AppCompatActivity implements
                     String stLongitude = String.valueOf(longitude);
                     Location location = new Location(stLatitude,stLongitude);
                     //HotSpotInfo(String name,String description,String picture, Location location, long viewCount, long planCount )
-                    HotSpotInfoList.add( new HotSpotInfo( name, description, spotPictureURL,location,viewCount, planCount));
+                    HotSpotInfoList.add( new HotSpotInfo( name, description, spotPictureURL,location,viewCount, planCount, remark, budget, pathRemark, date, startTime));
 
 
                     Log.d(TAG, "description " + description);
@@ -330,6 +349,21 @@ public class TripDetailActivity extends AppCompatActivity implements
             GoogleMap.OnInfoWindowClickListener {
         @Override
         public boolean onMarkerClick(Marker marker) {
+
+
+
+                final double lat = marker.getPosition().latitude;
+                final double lng = marker.getPosition().longitude;
+                final String title = marker.getTitle();
+
+                Uri gmmIntentUri = Uri.parse("geo:"+lat+","+lng+"?q=" + Uri.encode(title));
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+
+                mapIntent.setPackage("com.google.android.apps.maps");
+                startActivity(mapIntent);
+
+
+
             //showToast(marker.getTitle());
             return false;
         }
@@ -373,6 +407,12 @@ public class TripDetailActivity extends AppCompatActivity implements
         bundle.putString("description", mHotSpotInfoList.get(Index).getDescription());
         bundle.putString("latitude", mHotSpotInfoList.get(Index).getLocation().getLatitude() );
         bundle.putString("longitude", mHotSpotInfoList.get(Index).getLocation().getLongitude() );
+        bundle.putString("remark", mHotSpotInfoList.get(Index).getRemark() );
+        bundle.putString("pathRemark", mHotSpotInfoList.get(Index).getPathRemark() );
+        bundle.putString("startTime", mHotSpotInfoList.get(Index).getStartTime() );
+        bundle.putString("date", Utils.dateToString(mHotSpotInfoList.get(Index).getDate()) );
+        bundle.putInt("budget", mHotSpotInfoList.get(Index).getBudget() );
+
 
 
         //將Bundle物件傳給intent
@@ -435,7 +475,15 @@ public class TripDetailActivity extends AppCompatActivity implements
             String snippet = marker.getSnippet();
             TextView tvSnippet = ((TextView) infoWindow
                     .findViewById(R.id.tvSnippet));
-            tvSnippet.setText(snippet+"次規劃");
+            if (hotSpotInfo.getRemark().length() > 40) {
+                tvSnippet.setText(hotSpotInfo.getRemark().substring(0, 20));
+            } else {
+                tvSnippet.setText(hotSpotInfo.getRemark());
+
+            }
+
+
+
 
             return infoWindow;
         }

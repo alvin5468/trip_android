@@ -9,11 +9,105 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.mlj.mylocaljourney2.OneDaySpotDetailActivity">
 
-    <ListView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/lvOneDaySpot"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:id="@+id/showbox"
+        >
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/inner">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:id="@+id/name_label"
+                android:text="名稱："/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:id="@+id/name"
+
+                android:layout_alignParentTop="true"
+                android:layout_toRightOf="@+id/name_label"
+                android:layout_toEndOf="@+id/name_label" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:id="@+id/time_label"
+                android:layout_below="@+id/name_label"
+                android:text="時間："/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:id="@+id/time"
+                android:layout_below="@+id/name"
+                android:layout_toRightOf="@+id/time_label"
+                android:layout_toEndOf="@+id/time_label" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:id="@+id/budget_label"
+                android:layout_below="@+id/time_label"
+                android:text="預算："/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:id="@+id/budget"
+                android:layout_below="@+id/time"
+                android:layout_toRightOf="@+id/budget_label"
+                android:layout_toEndOf="@+id/budget_label" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:id="@+id/path_label"
+                android:layout_below="@+id/budget_label"
+                android:text="路程："/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:id="@+id/path"
+                android:layout_below="@+id/budget"
+                android:layout_toRightOf="@+id/path_label"
+                android:layout_toEndOf="@+id/path_label" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:id="@+id/remark_label"
+                android:layout_below="@+id/path_label"
+                android:text="記事："/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:id="@+id/remark"
+                android:layout_below="@+id/path"
+                android:layout_toRightOf="@+id/remark_label"
+                android:layout_toEndOf="@+id/remark_label" />
+
+
+        </RelativeLayout>
+    </ScrollView>
 </RelativeLayout>
