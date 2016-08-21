@@ -56,6 +56,7 @@ public class TripDetailActivity extends AppCompatActivity implements
     private ServerInfo mServerInfo = null;
     private String mJourneyBeginId = null;
     private boolean mIsConnected = false;
+    private TripInfoDB mTripInfoDB = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +74,9 @@ public class TripDetailActivity extends AppCompatActivity implements
         mServerInfo = new ServerInfo();
 
         mIsConnected = isConnected();
+
+        mTripInfoDB = new TripInfoDB(TripDetailActivity.this);
+        mTripInfoDB.InitJourney();
 
         // init Map
         //initMap();
@@ -142,20 +146,25 @@ public class TripDetailActivity extends AppCompatActivity implements
 
     public void updateInfoWindow(int index) // OneTripPlanInfoFragment will call this callback
     {
-        Utils.l("Libo debug index " + index);
-        Marker marker_tmp = mMarkerList.get(index);
+        if (isConnected()) {
+            Utils.l("Libo debug index " + index);
+            Marker marker_tmp = mMarkerList.get(index);
 
-        if( marker_tmp != null ) {
-            marker_tmp.showInfoWindow(); // show an info window (showInfoWindow())
+            if( marker_tmp != null ) {
+                marker_tmp.showInfoWindow(); // show an info window (showInfoWindow())
 
-            // move camera
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(mLatLngList.get(index))
-                    .zoom(8)
-                    .build();
-            CameraUpdate cameraUpdate = CameraUpdateFactory
-                    .newCameraPosition(cameraPosition);
-            mGoogleMap.animateCamera(cameraUpdate);
+                // move camera
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(mLatLngList.get(index))
+                        .zoom(8)
+                        .build();
+                CameraUpdate cameraUpdate = CameraUpdateFactory
+                        .newCameraPosition(cameraPosition);
+                mGoogleMap.animateCamera(cameraUpdate);
+
+            }
+        } else {
+            gotoOneDaySpotDetailActivity(index);
 
         }
     }
@@ -192,11 +201,33 @@ public class TripDetailActivity extends AppCompatActivity implements
         ArrayList<HotSpotInfo> HotSpotInfoList = new ArrayList<HotSpotInfo>();
 
         // get JSON from web server, add data
-        DownloadTripDetailTask TripDetailTask = new DownloadTripDetailTask();
-        TripDetailTask.execute(URL);
+
         try {
-            JSONObject json = TripDetailTask.get();
-            Log.d(TAG, "json : " + json);
+            mIsConnected = isConnected();
+            JSONObject json;
+            if( mIsConnected) // network is ready
+            {
+                DownloadTripDetailTask TripDetailTask = new DownloadTripDetailTask();
+                TripDetailTask.execute(URL);
+                json = TripDetailTask.get();
+
+                JSONObject journeyJsnObj = json.getJSONObject("journey");//Get JSONArray
+                long journeyId = journeyJsnObj.getLong("id");
+                System.out.println("mJourneyBeginId is "  + journeyId);
+                mTripInfoDB.UpdateJourneyData(String.valueOf(journeyId), json.toString());
+
+
+                Log.d(TAG, "json : " + json);
+            }
+            else {
+                String jsonStr = mTripInfoDB.GetJourneyData(mJourneyBeginId);
+                System.out.println("mJourneyBeginId is "  + mJourneyBeginId);
+                Utils.l("Libo debug : jsonStr " + jsonStr);
+                json = new JSONObject(jsonStr);
+
+            }
+
+            System.out.println("json is " + json);
             try {
                 String Status = json.getString("status");
                 long journeyId = 0;
@@ -285,7 +316,7 @@ public class TripDetailActivity extends AppCompatActivity implements
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return HotSpotInfoList;
